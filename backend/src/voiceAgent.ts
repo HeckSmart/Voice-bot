@@ -118,7 +118,7 @@ class VoiceAgent {
       return response;
     } catch (error) {
       console.error('Error processing audio:', error);
-      return null; // Don't respond on errors
+      throw error;
     }
   }
 
@@ -139,7 +139,7 @@ class VoiceAgent {
       return await this.tts.generateSpeech(text, voice);
     } catch (error) {
       console.error('TTS generation failed:', error);
-      return Buffer.alloc(0);
+      throw error;
     }
   }
 }

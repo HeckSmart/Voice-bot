@@ -38,15 +38,12 @@ wss.on('connection', (ws) => {
         console.log('Received audio data, processing with voice:', data.voice);
         const response = await voiceAgent.processAudio(data.audio, data.voice);
 
-        // Only respond if we got a valid response
         if (response && response.trim().length > 0) {
-          // Generate TTS audio
           const audioBuffer = await voiceAgent.generateSpeech(
             response,
             data.voice || 'en-IN-NeerjaNeural'
           );
 
-          // Only send if we have audio; otherwise frontend will request TTS
           if (audioBuffer.length > 0) {
             const audioBase64 = audioBuffer.toString('base64');
             console.log('Sending response with audio, size:', audioBuffer.length);
@@ -58,7 +55,6 @@ wss.on('connection', (ws) => {
               })
             );
           } else {
-            console.log('TTS returned empty buffer, sending text-only response');
             ws.send(
               JSON.stringify({
                 type: 'response',
@@ -67,7 +63,6 @@ wss.on('connection', (ws) => {
             );
           }
         } else {
-          console.log('No response generated, sending no_response');
           ws.send(JSON.stringify({ type: 'no_response' }));
         }
       } else if (data.type === 'tts') {
@@ -77,7 +72,6 @@ wss.on('connection', (ws) => {
           data.voice || 'en-IN-NeerjaNeural'
         );
         const audioBase64 = audioBuffer.toString('base64');
-
         ws.send(
           JSON.stringify({
             type: 'audio',
@@ -86,9 +80,16 @@ wss.on('connection', (ws) => {
         );
       }
     } catch (error) {
-      console.error('WebSocket message error:', error);
+      const message =
+        error instanceof Error ? error.message : 'Something went wrong. Try again.';
+      console.error('WebSocket message error:', message, error);
       try {
-        ws.send(JSON.stringify({ type: 'no_response' }));
+        ws.send(
+          JSON.stringify({
+            type: 'error',
+            message,
+          })
+        );
       } catch (_) {}
     }
   });

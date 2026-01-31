@@ -1,4 +1,5 @@
 import { Groq, toFile } from 'groq-sdk';
+import { messageForGroqError } from '../errors';
 
 export class GroqSTT {
   private groq: Groq;
@@ -8,28 +9,31 @@ export class GroqSTT {
   }
 
   async transcribe(audioBuffer: Buffer, language?: string): Promise<string> {
-    // Use SDK's toFile so Node gets formdata-node File (browser File is not in Node)
-    const audioFile = await toFile(audioBuffer, 'audio.webm', {
-      type: 'audio/webm',
-    });
+    try {
+      const audioFile = await toFile(audioBuffer, 'audio.webm', {
+        type: 'audio/webm',
+      });
 
-    const options: any = {
-      file: audioFile,
-      model: 'whisper-large-v3',
-      response_format: 'json',
-      temperature: 0, // More deterministic transcription
-    };
+      const options: any = {
+        file: audioFile,
+        model: 'whisper-large-v3',
+        response_format: 'json',
+        temperature: 0,
+      };
 
-    // English and Hindi only - language hint and prompt for better accuracy
-    if (language) {
-      options.language = language;
-      if (language === 'hi') {
-        options.prompt = 'यह एक हिंदी बातचीत है। कृपया शुद्ध हिंदी में लिखें।';
+      if (language) {
+        options.language = language;
+        if (language === 'hi') {
+          options.prompt = 'यह एक हिंदी बातचीत है। कृपया शुद्ध हिंदी में लिखें।';
+        }
       }
+
+      const transcription = await this.groq.audio.transcriptions.create(options);
+      return transcription.text;
+    } catch (err) {
+      const message = messageForGroqError(err);
+      console.error('Groq STT error:', err);
+      throw new Error(message);
     }
-
-    const transcription = await this.groq.audio.transcriptions.create(options);
-
-    return transcription.text;
   }
 }
