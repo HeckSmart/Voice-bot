@@ -109,6 +109,13 @@ export default function VoiceChat() {
           }
         } else if (data.type === 'no_response') {
           setIsProcessing(false);
+        } else if (data.type === 'error') {
+          setIsProcessing(false);
+          const msg =
+            typeof data.message === 'string' && data.message.length > 0
+              ? data.message
+              : 'Something went wrong. Try again.';
+          addMessage(msg, false);
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
