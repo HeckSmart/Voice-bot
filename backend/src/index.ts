@@ -16,8 +16,11 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// WebSocket server for audio streaming
-const wss = new WebSocket.Server({ port: 3002 });
+// WebSocket server for audio streaming — allow all origins
+const wss = new WebSocket.Server({
+  port: 3002,
+  verifyClient: () => true,
+});
 console.log('WebSocket server running on port 3002');
 
 wss.on('connection', (ws) => {
