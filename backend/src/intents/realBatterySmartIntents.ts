@@ -5,7 +5,7 @@ import { logApiCall } from '../utils/apiLogger';
 import fetch from 'node-fetch';
 
 
-const API_BASE = process.env.BATTERY_SMART_API || 'http://localhost:8000';
+const API_BASE = process.env.BATTERY_SMART_API || 'https://qa.api.upgrid.in';
 
 export const realBatterySmartIntents: IntentDefinition[] = [
   // ==========================================
