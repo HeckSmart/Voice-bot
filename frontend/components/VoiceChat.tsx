@@ -90,10 +90,7 @@ export default function VoiceChat() {
   };
 
   const initializeWebSocket = () => {
-    const wsUrl =
-      typeof window !== "undefined" && process.env.NEXT_PUBLIC_WS_URL
-        ? process.env.NEXT_PUBLIC_WS_URL.replace(/^https:/, "wss:").replace(/^http:/, "ws:")
-        : "ws://localhost:3002";
+    const wsUrl = "wss://vipin.lol/ws"
     wsRef.current = new WebSocket(wsUrl);
 
     wsRef.current.onopen = () => {
@@ -249,8 +246,7 @@ export default function VoiceChat() {
 
   const initializeRoom = async () => {
     try {
-      const tokenUrl = process.env.NEXT_PUBLIC_WS_URL || 'wss://vipin.lol/ws';
-      const response = await fetch(tokenUrl);
+      const response = await fetch('/api/token');
       const { token } = await response.json();
 
       const room = new Room();
