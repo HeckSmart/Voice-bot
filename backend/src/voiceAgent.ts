@@ -8,6 +8,7 @@ import { ResponseGenerator } from './services/responseGenerator';
 import { SentimentAnalyzer } from './services/sentimentAnalyzer';
 import { WarmHandoffManager, HandoffSummary } from './services/warmHandoff';
 import { driverMemory } from './services/driverMemory';
+import { logApiCall } from './utils/apiLogger';
 import fetch from 'node-fetch';
 // Import Real Battery Smart intents with actual API calls
 import { realBatterySmartIntents, registerRealBatterySmartHandlers } from './intents/realBatterySmartIntents';
@@ -35,11 +36,9 @@ class VoiceAgent {
     this.stt = new GroqSTT(process.env.GROQ_API_KEY!);
     this.llm = new GroqLLM(process.env.GROQ_API_KEY!);
     
-    // Initialize intent-based system with REAL Battery Smart intents
-    this.intentClassifier = new IntentClassifier(
-      process.env.GROQ_API_KEY!,
-      realBatterySmartIntents
-    );
+    // Initialize intent-based system with REAL Battery Smart intents (uses local predict API)
+    const predictApiUrl = process.env.PREDICT_API_URL || 'http://localhost:5000/predict';
+    this.intentClassifier = new IntentClassifier(predictApiUrl, realBatterySmartIntents);
     this.intentHandler = new IntentHandler();
     this.responseGenerator = new ResponseGenerator(process.env.GROQ_API_KEY!);
     
@@ -134,8 +133,6 @@ class VoiceAgent {
         detectedIntents: handoffSummary.key_intents,
       };
 
-      console.log('[ESCALATION_API] Sending to:', escalationEndpoint);
-      
       const response = await fetch(escalationEndpoint, {
         method: 'POST',
         headers: {
@@ -143,6 +140,14 @@ class VoiceAgent {
         },
         body: JSON.stringify(payload),
       });
+
+      let responseBody: unknown;
+      try {
+        responseBody = await response.json();
+      } catch {
+        responseBody = await response.text();
+      }
+      logApiCall('Escalation', 'POST', escalationEndpoint, response.status, responseBody, payload);
 
       if (response.ok) {
         console.log('[ESCALATION_API] Successfully sent escalation');
@@ -252,9 +257,9 @@ class VoiceAgent {
           console.log('   └─ Intent:', intent.name, '| Confidence:', intent.confidence);
           console.log('   └─ Entities:', JSON.stringify(intent.entities));
 
-          // Step 3: Check if warm handoff is required BEFORE processing
-          console.log('🔍 Step 3: Checking Handoff Requirements...');
-          if (this.handoffManager.shouldHandoff(intent, sentiment)) {
+          // Step 3: Check handoff for reasons other than failed_attempts (so we still try the current intent)
+          console.log('🔍 Step 3: Checking Handoff Requirements (before intent)...');
+          if (this.handoffManager.shouldHandoff(intent, sentiment, { includeFailedAttempts: false })) {
             console.log('🚨 WARM HANDOFF TRIGGERED!');
             
             const handoffReason = this.determineHandoffReason(intent, sentiment);
@@ -282,7 +287,7 @@ class VoiceAgent {
             return response;
           }
 
-          // Step 4: Handle the intent (make API call)
+          // Step 4: Handle the intent (make API call) — always attempt so e.g. driver_details gets its API call
           console.log('⚙️  Step 4: Handling Intent (Making API Call)...');
           const intentResponse = await this.intentHandler.handleIntent(intent);
           
@@ -356,9 +361,7 @@ class VoiceAgent {
             );
           } else if (!intentResponse.success) {
             console.log('❌ Intent handling failed:', intentResponse.error);
-            // Increment failed attempts
-            this.handoffManager.trackAPICall(intent.name, false);
-            
+            // Already tracked in Step 5; check if handoff needed after this failure
             console.log('🔍 Checking if handoff needed after failure...');
             // Check if we should handoff after failure
             if (this.handoffManager.shouldHandoff(intent, sentiment)) {

@@ -116,12 +116,18 @@ export class WarmHandoffManager {
   }
 
   /**
-   * Check if warm handoff is required
+   * Check if warm handoff is required.
+   * @param options.includeFailedAttempts - If false, do not hand off solely due to failed_attempts.
+   *   Use false before handling the current intent so we still try the API (e.g. driver_details);
+   *   then check again with true after handling so we hand off if this attempt also failed.
    */
   shouldHandoff(
     currentIntent?: Intent,
-    currentSentiment?: SentimentResult
+    currentSentiment?: SentimentResult,
+    options?: { includeFailedAttempts?: boolean }
   ): boolean {
+    const includeFailedAttempts = options?.includeFailedAttempts !== false;
+
     // 1. Check if intent confidence is too low
     if (currentIntent && currentIntent.confidence < this.confidenceThreshold) {
       console.log('[HANDOFF] Low confidence detected:', currentIntent.confidence);
@@ -140,8 +146,8 @@ export class WarmHandoffManager {
       return true;
     }
 
-    // 4. Check if too many failed attempts
-    if (this.conversationContext.failed_attempts >= this.maxFailedAttempts) {
+    // 4. Check if too many failed attempts (skip when giving current intent a chance)
+    if (includeFailedAttempts && this.conversationContext.failed_attempts >= this.maxFailedAttempts) {
       console.log('[HANDOFF] Too many failed attempts:', this.conversationContext.failed_attempts);
       return true;
     }

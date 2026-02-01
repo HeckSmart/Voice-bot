@@ -22,6 +22,8 @@ export class ResponseGenerator {
         return this.generateErrorResponse(intentResponse.error);
       }
 
+      console.log('Intent response data:', intentResponse.data);
+
       const systemPrompt = `You are a helpful voice assistant that converts structured data into natural, conversational Hinglish responses.
 
 IMPORTANT RULES:

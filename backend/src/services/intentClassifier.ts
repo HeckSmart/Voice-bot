@@ -1,5 +1,6 @@
-import { Groq } from 'groq-sdk';
+import fetch from 'node-fetch';
 import { messageForGroqError } from '../errors';
+import { logApiCall } from '../utils/apiLogger';
 
 export interface Intent {
   name: string;
@@ -14,101 +15,67 @@ export interface IntentDefinition {
   entitySchema?: Record<string, string>; // entity name -> type
 }
 
+const DEFAULT_PREDICT_API_URL = 'https://species-strength-twist-debug.trycloudflare.com/predict';
+const DEFAULT_INSTRUCTION = 'Extract intent and driver_id';
+
 export class IntentClassifier {
-  private groq: Groq;
+  private predictApiUrl: string;
+  private instruction: string;
   private intents: IntentDefinition[];
 
-  constructor(apiKey: string, intents: IntentDefinition[]) {
-    this.groq = new Groq({ apiKey });
+  constructor(predictApiUrl: string, intents: IntentDefinition[]) {
+    this.predictApiUrl = predictApiUrl || DEFAULT_PREDICT_API_URL;
+    this.instruction = DEFAULT_INSTRUCTION;
     this.intents = intents;
   }
 
   async classifyIntent(userQuery: string): Promise<Intent> {
     try {
-      const systemPrompt = this.buildSystemPrompt();
-      const userPrompt = this.buildUserPrompt(userQuery);
-
       console.log('Classifying intent for query:', userQuery);
 
-      const completion = await this.groq.chat.completions.create({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        model: 'llama-3.3-70b-versatile',
-        temperature: 0.1, // Low temperature for consistent classification
-        max_tokens: 500,
-        response_format: { type: 'json_object' },
+      const requestBody = { instruction: this.instruction, input: userQuery };
+      const res = await fetch(this.predictApiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
       });
 
-      const response = completion.choices[0]?.message?.content;
-      if (!response) {
+      const data = (await res.json()) as { response?: string };
+      logApiCall('Predict (intent)', 'POST', this.predictApiUrl, res.status, data, requestBody);
+
+      if (!res.ok) {
+        throw new Error(`Predict API error: ${res.status} ${res.statusText}`);
+      }
+      const responseStr = data.response;
+      if (responseStr == null || responseStr === '') {
         throw new Error('No response from intent classifier');
       }
 
-      const result = JSON.parse(response);
-      console.log('Intent classification result:', result);
-
-      return {
-        name: result.intent || 'unknown',
-        confidence: result.confidence || 0,
-        entities: result.entities || {},
+      const result = JSON.parse(responseStr) as {
+        intent?: string;
+        confidence?: number;
+        driver_id?: string;
+        entities?: Record<string, any>;
       };
+
+      const entities: Record<string, any> = { ...(result.entities || {}) };
+      if (result.driver_id != null) {
+        entities.driver_id = result.driver_id;
+      }
+
+      const intent: Intent = {
+        name: result.intent || 'unknown',
+        confidence: typeof result.confidence === 'number' ? result.confidence : 1,
+        entities,
+      };
+
+      console.log('Intent classification result:', intent);
+      return intent;
     } catch (err) {
-      const message = messageForGroqError(err);
+      const message = err instanceof Error ? err.message : messageForGroqError(err);
       console.error('Intent classification error:', err);
       throw new Error(message);
     }
-  }
-
-  private buildSystemPrompt(): string {
-    const intentDescriptions = this.intents
-      .map((intent) => {
-        let description = `- **${intent.name}**: ${intent.description}\n`;
-        description += `  Examples: ${intent.examples.join(', ')}\n`;
-        if (intent.entitySchema) {
-          description += `  Entities: ${JSON.stringify(intent.entitySchema)}\n`;
-        }
-        return description;
-      })
-      .join('\n');
-
-    return `You are an intent classification system for a Battery Smart voice assistant that works in Hinglish (mix of Hindi and English).
-
-Your task is to classify user queries into one of the following intents:
-
-${intentDescriptions}
-
-IMPORTANT:
-- Understand both Hindi and English words in the query
-- Extract relevant entities based on the intent's entity schema
-- For driver_id entity: Look for patterns like "D0015", "0015", "D 0015", "driver ID 0015", "mera ID D0015 hai"
-- Driver IDs can be spoken as just numbers (0015) or with D prefix (D0015)
-- If user provides driver ID in query, extract it and include in entities
-- If no intent matches confidently, use "unknown" with low confidence
-- Always respond in valid JSON format
-
-Response format:
-{
-  "intent": "intent_name",
-  "confidence": 0.95,
-  "entities": {
-    "driver_id": "0015"
-  }
-}
-
-Example extractions:
-- "mera swap count batao, mera ID D0015 hai" → extract driver_id: "D0015"
-- "0015 ka subscription check karo" → extract driver_id: "0015"
-- "D zero zero one five" → extract driver_id: "D0015"`;
-  }
-
-  private buildUserPrompt(userQuery: string): string {
-    return `Classify the following user query and extract entities:
-
-User Query: "${userQuery}"
-
-Respond with JSON containing: intent, confidence (0-1), and entities.`;
   }
 
   updateIntents(intents: IntentDefinition[]) {

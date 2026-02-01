@@ -1,12 +1,9 @@
 import { IntentDefinition } from '../services/intentClassifier';
 import { IntentHandler } from '../services/intentHandler';
 import { driverMemory } from '../services/driverMemory';
+import { logApiCall } from '../utils/apiLogger';
 import fetch from 'node-fetch';
 
-/**
- * Real Battery Smart Intents
- * Based on actual API endpoints from localhost:8000
- */
 
 const API_BASE = process.env.BATTERY_SMART_API || 'http://localhost:8000';
 
@@ -359,12 +356,9 @@ export function registerRealBatterySmartHandlers(intentHandler: IntentHandler) {
       // Correct endpoint: /api/drivers/driverSwapCount?driverId=D0015
       // Response format: { "status": "success", "data": [{ "id": "D0015", "swapCount": 0 }] }
       const url = `${API_BASE}/api/drivers/driverSwapCount?driverId=${driverId}`;
-      console.log('[INTENT:swap_count] 🌐 Calling API:', url);
-      
       const response = await fetch(url);
       const data: any = await response.json();
-      
-      console.log('[INTENT:swap_count] 📥 API Response:', JSON.stringify(data, null, 2));
+      logApiCall('BatterySmart:swap_count', 'GET', url, response.status, data);
 
       if (data.status === 'success' && data.data && data.data.length > 0) {
         const result = {
@@ -402,12 +396,9 @@ export function registerRealBatterySmartHandlers(intentHandler: IntentHandler) {
       // Correct endpoint: /api/transactions/lastSwapPrice?driverId=D0015
       // Response format: { "success": true, "data": { "swapPrice": 240 } }
       const url = `${API_BASE}/api/transactions/lastSwapPrice?driverId=${driverId}`;
-      console.log('[INTENT:swap_price] 🌐 Calling API:', url);
-      
       const response = await fetch(url);
       const data: any = await response.json();
-      
-      console.log('[INTENT:swap_price] 📥 API Response:', JSON.stringify(data, null, 2));
+      logApiCall('BatterySmart:swap_price', 'GET', url, response.status, data);
 
       if (data.success && data.data) {
         const result = { swap_price: data.data.swapPrice };
@@ -445,12 +436,9 @@ export function registerRealBatterySmartHandlers(intentHandler: IntentHandler) {
       // Correct endpoint: /api/transactions/lastBatteryIssued?driverId=D0015
       // Response format: { "success": true, "data": { "batteriesIssued": "[\"B0142\",\"B0143\"]" } }
       const url = `${API_BASE}/api/transactions/lastBatteryIssued?driverId=${driverId}`;
-      console.log('[INTENT:battery_issued] 🌐 Calling API:', url);
-      
       const response = await fetch(url);
       const data: any = await response.json();
-      
-      console.log('[INTENT:battery_issued] 📥 API Response:', JSON.stringify(data, null, 2));
+      logApiCall('BatterySmart:battery_issued', 'GET', url, response.status, data);
 
       if (data.success && data.data && data.data.batteriesIssued) {
         const batteries = JSON.parse(data.data.batteriesIssued);
@@ -492,12 +480,9 @@ export function registerRealBatterySmartHandlers(intentHandler: IntentHandler) {
       // Correct endpoint: /api/transactions/lastSwapPartnerId?driverId=D0015
       // Response format: { "success": true, "data": { "partnerId": "P0003" } }
       const url = `${API_BASE}/api/transactions/lastSwapPartnerId?driverId=${driverId}`;
-      console.log('[INTENT:last_swap_partner] 🌐 Calling API:', url);
-      
       const response = await fetch(url);
       const data: any = await response.json();
-      
-      console.log('[INTENT:last_swap_partner] 📥 API Response:', JSON.stringify(data, null, 2));
+      logApiCall('BatterySmart:last_swap_partner', 'GET', url, response.status, data);
 
       if (data.success && data.data) {
         const result = { partner_id: data.data.partnerId };
@@ -532,12 +517,9 @@ export function registerRealBatterySmartHandlers(intentHandler: IntentHandler) {
       // Correct endpoint: /api/transactions/lastSwapHistoryInvoice?driverId=D0015
       // Response format: { "success": true, "data": { swapPrice, discount, penalty, ... } }
       const url = `${API_BASE}/api/transactions/lastSwapHistoryInvoice?driverId=${driverId}`;
-      console.log('[INTENT:swap_history_invoice] 🌐 Calling API:', url);
-      
       const response = await fetch(url);
       const data: any = await response.json();
-      
-      console.log('[INTENT:swap_history_invoice] 📥 API Response:', JSON.stringify(data, null, 2));
+      logApiCall('BatterySmart:swap_history_invoice', 'GET', url, response.status, data);
 
       if (data.success && data.data) {
         const invoice = data.data;
@@ -585,12 +567,9 @@ export function registerRealBatterySmartHandlers(intentHandler: IntentHandler) {
       // Correct endpoint: /api/schemes?driverId=D0015
       // Response format: { "success": true, "data": [{ id, driverId, schemeName, description, ... }] }
       const url = `${API_BASE}/api/schemes?driverId=${driverId}`;
-      console.log('[INTENT:available_scheme] 🌐 Calling API:', url);
-      
       const response = await fetch(url);
       const data: any = await response.json();
-      
-      console.log('[INTENT:available_scheme] 📥 API Response:', JSON.stringify(data, null, 2));
+      logApiCall('BatterySmart:available_scheme', 'GET', url, response.status, data);
 
       if (data.success && data.data && data.data.length > 0) {
         const result = {
@@ -630,12 +609,9 @@ export function registerRealBatterySmartHandlers(intentHandler: IntentHandler) {
       // Correct endpoint: /api/schemes/details?driverId=D0015
       // Response format: { "success": true, "data": { "schemeName": "Pro Rider", "description": "..." } }
       const url = `${API_BASE}/api/schemes/details?driverId=${driverId}`;
-      console.log('[INTENT:driver_scheme] 🌐 Calling API:', url);
-      
       const response = await fetch(url);
       const data: any = await response.json();
-      
-      console.log('[INTENT:driver_scheme] 📥 API Response:', JSON.stringify(data, null, 2));
+      logApiCall('BatterySmart:driver_scheme', 'GET', url, response.status, data);
 
       if (data.success && data.data) {
         const result = {
@@ -673,12 +649,9 @@ export function registerRealBatterySmartHandlers(intentHandler: IntentHandler) {
       // Correct endpoint: /api/subscriptions?driverId=D0015
       // Response format: { "success": true, "data": [{ id, driverId, subscriptionName, description, startDate, endDate, subscriptionPrice, status, ... }] }
       const url = `${API_BASE}/api/subscriptions?driverId=${driverId}`;
-      console.log('[INTENT:driver_subscription] 🌐 Calling API:', url);
-      
       const response = await fetch(url);
       const data: any = await response.json();
-      
-      console.log('[INTENT:driver_subscription] 📥 API Response:', JSON.stringify(data, null, 2));
+      logApiCall('BatterySmart:driver_subscription', 'GET', url, response.status, data);
 
       if (data.success && data.data && data.data.length > 0) {
         const sub = data.data[0];
@@ -721,12 +694,9 @@ export function registerRealBatterySmartHandlers(intentHandler: IntentHandler) {
       // Correct endpoint: /api/subscriptions/endDate?driverId=D0015
       // Response format: { "success": true, "data": { "endDate": "2027-01-01T21:10:15.000Z" } }
       const url = `${API_BASE}/api/subscriptions/endDate?driverId=${driverId}`;
-      console.log('[INTENT:driver_subscription_end_date] 🌐 Calling API:', url);
-      
       const response = await fetch(url);
       const data: any = await response.json();
-      
-      console.log('[INTENT:driver_subscription_end_date] 📥 API Response:', JSON.stringify(data, null, 2));
+      logApiCall('BatterySmart:driver_subscription_end_date', 'GET', url, response.status, data);
 
       if (data.success && data.data) {
         const result = { end_date: data.data.endDate };
@@ -761,12 +731,9 @@ export function registerRealBatterySmartHandlers(intentHandler: IntentHandler) {
       // Correct endpoint: /api/subscriptions/startDate?driverId=D0015
       // Response format: { "success": true, "data": { "startDate": "2026-01-01T21:10:15.000Z" } }
       const url = `${API_BASE}/api/subscriptions/startDate?driverId=${driverId}`;
-      console.log('[INTENT:driver_subscription_start_date] 🌐 Calling API:', url);
-      
       const response = await fetch(url);
       const data: any = await response.json();
-      
-      console.log('[INTENT:driver_subscription_start_date] 📥 API Response:', JSON.stringify(data, null, 2));
+      logApiCall('BatterySmart:driver_subscription_start_date', 'GET', url, response.status, data);
 
       if (data.success && data.data) {
         const result = { start_date: data.data.startDate };
@@ -801,12 +768,9 @@ export function registerRealBatterySmartHandlers(intentHandler: IntentHandler) {
       // Correct endpoint: /api/subscriptions/price?driverId=D0015
       // Response format: { "success": true, "data": { "subscriptionPrice": 4499 } }
       const url = `${API_BASE}/api/subscriptions/price?driverId=${driverId}`;
-      console.log('[INTENT:driver_subscription_price] 🌐 Calling API:', url);
-      
       const response = await fetch(url);
       const data: any = await response.json();
-      
-      console.log('[INTENT:driver_subscription_price] 📥 API Response:', JSON.stringify(data, null, 2));
+      logApiCall('BatterySmart:driver_subscription_price', 'GET', url, response.status, data);
 
       if (data.success && data.data) {
         const result = { subscription_price: data.data.subscriptionPrice };
@@ -841,12 +805,9 @@ export function registerRealBatterySmartHandlers(intentHandler: IntentHandler) {
       // Correct endpoint: /api/subscriptions/status?driverId=D0015
       // Response format: { "success": true, "data": { "status": "active" } }
       const url = `${API_BASE}/api/subscriptions/status?driverId=${driverId}`;
-      console.log('[INTENT:driver_subscription_status] 🌐 Calling API:', url);
-      
       const response = await fetch(url);
       const data: any = await response.json();
-      
-      console.log('[INTENT:driver_subscription_status] 📥 API Response:', JSON.stringify(data, null, 2));
+      logApiCall('BatterySmart:driver_subscription_status', 'GET', url, response.status, data);
 
       if (data.success && data.data) {
         const result = { status: data.data.status };
@@ -940,10 +901,10 @@ export function registerRealBatterySmartHandlers(intentHandler: IntentHandler) {
     }
 
     try {
-      const response = await fetch(
-        `${API_BASE}/api/drivers/onboarding/status`
-      );
+      const url = `${API_BASE}/api/drivers/onboarding/status`;
+      const response = await fetch(url);
       const data: any = await response.json();
+      logApiCall('BatterySmart:onboarding_status', 'GET', url, response.status, data);
 
       if (data.status === 'success') {
         return {
@@ -978,12 +939,9 @@ export function registerRealBatterySmartHandlers(intentHandler: IntentHandler) {
       // Correct endpoint: /api/drivers/details?driverId=D0015
       // Response format: { "status": "success", "data": { "id": "D0015", "status": "inactive", "swapCount": 0, ... } }
       const url = `${API_BASE}/api/drivers/details?driverId=${driverId}`;
-      console.log('[INTENT:driver_details] 🌐 Calling API:', url);
-      
       const response = await fetch(url);
       const data: any = await response.json();
-      
-      console.log('[INTENT:driver_details] 📥 API Response:', JSON.stringify(data, null, 2));
+      logApiCall('BatterySmart:driver_details', 'GET', url, response.status, data);
 
       if (data.status === 'success' && data.data) {
         const result = {
