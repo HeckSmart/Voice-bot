@@ -249,7 +249,8 @@ export default function VoiceChat() {
 
   const initializeRoom = async () => {
     try {
-      const response = await fetch('/api/token');
+      const tokenUrl = process.env.NEXT_PUBLIC_WS_URL || 'wss://vipin.lol/ws';
+      const response = await fetch(tokenUrl);
       const { token } = await response.json();
 
       const room = new Room();
