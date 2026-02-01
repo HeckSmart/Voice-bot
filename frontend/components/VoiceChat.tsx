@@ -90,7 +90,7 @@ export default function VoiceChat() {
   };
 
   const initializeWebSocket = () => {
-    const wsUrl = "wss://vipin.lol/ws"
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3002';
     wsRef.current = new WebSocket(wsUrl);
 
     wsRef.current.onopen = () => {
