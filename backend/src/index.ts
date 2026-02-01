@@ -102,6 +102,32 @@ wss.on('connection', (ws) => {
 // Start voice agent (initialize services)
 voiceAgent.initialize();
 
+// Register warm handoff callback
+voiceAgent.onHandoff((summary) => {
+  console.log('\n========================================');
+  console.log('🚨 WARM HANDOFF TRIGGERED');
+  console.log('========================================');
+  console.log('Reason:', summary.handoff_reason);
+  console.log('Priority:', summary.escalation_priority);
+  console.log('Driver:', summary.driver_details.driver_id || 'Unknown');
+  console.log('Last Query:', summary.last_query);
+  console.log('Sentiment:', summary.sentiment_trend);
+  console.log('Agent Context:', summary.agent_context);
+  console.log('========================================\n');
+
+  // TODO: Send to CRM/Jarvis system
+  // Example:
+  // await fetch(`${process.env.CRM_API}/handoff`, {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify(summary),
+  // });
+
+  // TODO: Notify available agents
+  // TODO: Create ticket in support system
+  // TODO: Update driver record with escalation
+});
+
 app.listen(PORT, () => {
   console.log(`Voice agent backend running on port ${PORT}`);
 });

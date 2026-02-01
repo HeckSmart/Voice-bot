@@ -1,0 +1,220 @@
+swap_count -> ask for driverId
+
+curl --location 'http://localhost:8000/api/drivers/driverSwapCount?driverId=D0015'
+res: 
+{
+    "status": "success",
+    "data": [
+        {
+            "id": "D0015",
+            "swapCount": 0
+        }
+    ]
+}
+
+swap_price -> ask for driverId
+curl --location 'http://localhost:8000/api/transactions/lastSwapPrice?driverId=D0015'
+
+{
+    "success": true,
+    "data": {
+        "swapPrice": 240
+    }
+}
+
+
+last_swap_price -> ask for driverId
+curl --location 'http://localhost:8000/api/transactions/lastSwapPrice?driverId=D0015'
+
+{
+    "success": true,
+    "data": {
+        "swapPrice": 240
+    }
+}
+
+battery_issued -> ask for driverId
+curl --location 'http://localhost:8000/api/transactions/lastBatteryIssued?driverId=D0015'
+
+{
+    "success": true,
+    "data": {
+        "batteriesIssued": "[\"B0142\",\"B0143\"]"
+    }
+}
+
+last_battery_issued -> ask for driverId
+
+curl --location 'http://localhost:8000/api/transactions/lastBatteryIssued?driverId=D0015'
+
+{
+    "success": true,
+    "data": {
+        "batteriesIssued": "[\"B0142\",\"B0143\"]"
+    }
+}
+
+last_swap_partner -> ask for driverId
+curl --location 'http://localhost:8000/api/transactions/lastSwapPartnerId?driverId=D0015'
+
+{
+    "success": true,
+    "data": {
+        "partnerId": "P0003"
+    }
+}
+
+
+
+swap_history_invoice -> ask for driverId
+
+curl --location 'http://localhost:8000/api/transactions/lastSwapHistoryInvoice?driverId=D0015'
+{
+    "success": true,
+    "data": {
+        "swapPrice": 125,
+        "discount": 5,
+        "penalty": 0,
+        "pointsUsed": 5,
+        "serviceCharge": null,
+        "id": 93611,
+        "batteriesReceived": "[\"B1361\",\"B1362\"]",
+        "batteriesIssued": "[\"LH0183\",\"LH0037\"]",
+        "vehicleType": "E-Rickshaw",
+        "date": "2021-07-21",
+        "driverId": "D0015",
+        "partnerId": "P0003",
+        "status": "normal",
+        "createdBy": null,
+        "createdAt": "2021-07-21T13:31:29.000Z",
+        "updatedAt": "2021-07-21T13:31:29.000Z",
+        "deletedAt": null
+    }
+}
+
+
+onboarding_status -> ask for driverId
+curl --location 'http://localhost:8000/api/drivers/onboarding/status'
+
+{
+    "status": "success",
+    "data": {}
+}
+
+nearest_station -> ask location of driver
+-> generate random nearest location
+
+nearest_dsk -> ask location of driver
+-> generate random nearest location
+
+nearest_ic -> ask location of driver
+-> generate random nearest location
+
+available_scheme -> ask for driverId
+curl --location 'http://localhost:8000/api/schemes?driverId=D0015'
+
+{
+    "success": true,
+    "data": [
+        {
+            "id": 13,
+            "driverId": "d0015",
+            "schemeName": "Pro Rider",
+            "description": "Extended range and discounted swap rates",
+            "created_at": "2026-01-31T21:05:04.000Z",
+            "updated_at": "2026-01-31T21:05:04.000Z",
+            "deletedAt": null
+        }
+    ]
+}
+
+driver_scheme -> ask for driverId
+curl --location 'http://localhost:8000/api/schemes/details?driverId=D0015'
+{
+    "success": true,
+    "data": {
+        "schemeName": "Pro Rider",
+        "description": "Extended range and discounted swap rates"
+    }
+}
+
+
+driver_subscription -> ask for driverId
+curl --location 'http://localhost:8000/api/subscriptions?driverId=D0015'
+{
+    "success": true,
+    "data": [
+        {
+            "id": 13,
+            "driverId": "d0015",
+            "subscriptionName": "Annual Premium",
+            "description": "12 months best value",
+            "startDate": "2026-01-01T21:10:15.000Z",
+            "endDate": "2027-01-01T21:10:15.000Z",
+            "subscriptionPrice": 4499,
+            "status": "active",
+            "createdAt": "2026-01-31T21:10:15.000Z",
+            "updatedAt": "2026-01-31T21:10:15.000Z",
+            "deletedAt": null
+        }
+    ]
+}
+
+
+driver_subscription_end_date -> ask for driverId
+curl --location 'http://localhost:8000/api/subscriptions/endDate?driverId=D0015'
+
+{
+    "success": true,
+    "data": {
+        "endDate": "2027-01-01T21:10:15.000Z"
+    }
+}
+
+
+driver_subscription_start_date -> ask for driverId
+curl --location 'http://localhost:8000/api/subscriptions/startDate?driverId=D0015'
+
+{
+    "success": true,
+    "data": {
+        "startDate": "2026-01-01T21:10:15.000Z"
+    }
+}
+
+
+driver_subscription_price -> ask for driverId
+curl --location 'http://localhost:8000/api/subscriptions/price?driverId=D0015'
+
+{
+    "success": true,
+    "data": {
+        "subscriptionPrice": 4499
+    }
+}
+
+
+
+driver_subscription_status -> ask for driverId
+curl --location 'http://localhost:8000/api/subscriptions/status?driverId=D0015'
+{
+    "success": true,
+    "data": {
+        "status": "active"
+    }
+}
+
+
+driver_details -> ask for driverId
+curl --location 'http://localhost:8000/api/drivers/details?driverId=D0015'
+
+{
+    "status": "success",
+    "data": {
+        "id": "D0015",
+        "status": "inactive",
+        "swapCount": 0,
+        "createdAt": "2020-07-16T18:30:00.000Z",
+        "updatedAt": "2026-01-31T18:30:57.000Z"
+    }
+}
