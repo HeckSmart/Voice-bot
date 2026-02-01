@@ -90,7 +90,11 @@ export default function VoiceChat() {
   };
 
   const initializeWebSocket = () => {
-    wsRef.current = new WebSocket('ws://localhost:3002');
+    const wsUrl =
+      typeof window !== "undefined" && process.env.NEXT_PUBLIC_WS_URL
+        ? process.env.NEXT_PUBLIC_WS_URL.replace(/^https:/, "wss:").replace(/^http:/, "ws:")
+        : "ws://localhost:3002";
+    wsRef.current = new WebSocket(wsUrl);
 
     wsRef.current.onopen = () => {
       console.log('WebSocket connected');
